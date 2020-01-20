@@ -37,4 +37,9 @@ class HomePageViewModel : ViewModel() {
 
         return posts
     }
+
+    fun newPost() {
+        Log.d("HomePageViewModel", "Button Clicked!")
+    }
+
 }
