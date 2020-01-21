@@ -5,7 +5,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.auth.User
 import com.jandreasian.aroundme.network.Posts
+import java.util.*
 
 class HomePageViewModel : ViewModel() {
 
@@ -25,9 +27,9 @@ class HomePageViewModel : ViewModel() {
             .get()
             .addOnSuccessListener { result ->
                 for (document in result) {
-                    postList.add(Posts(document.id, document.get("Caption").toString(),document.get("ImageURL").toString()))
-                    _caption.value = document.get("Caption").toString()
-                    _imageUrl.value = document.get("ImageURL").toString()
+                    postList.add(Posts(document.get("caption").toString(),document.get("imgSrcUrl").toString()))
+                    //_caption.value = document.get("Caption").toString()
+                    //_imageUrl.value = document.get("ImageURL").toString()
                 }
                 posts.value = postList
             }
@@ -39,7 +41,10 @@ class HomePageViewModel : ViewModel() {
     }
 
     fun newPost() {
+        val uuid: String = UUID.randomUUID().toString()
         Log.d("HomePageViewModel", "Button Clicked!")
+        val post = Posts("This is a test", "gs://aroundme-7b5fa.appspot.com/images/scenery.jpg")
+        db.collection("posts").document(uuid).set(post)
     }
 
 }
