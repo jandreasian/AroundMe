@@ -1,9 +1,19 @@
 package com.jandreasian.aroundme.homePage
 
+import android.Manifest
+import android.app.Activity
+import android.content.ContentValues
+import android.content.ContentValues.TAG
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
+import android.provider.MediaStore
+import android.util.Log
 import android.view.*
-import android.widget.Toast
+import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.fragment.app.Fragment
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
@@ -12,6 +22,12 @@ import com.jandreasian.aroundme.R
 import com.jandreasian.aroundme.databinding.HomePageFragmentBinding
 
 class HomePageFragment : Fragment() {
+
+    private val IMAGE_CAPTURE_CODE = 1001
+
+    private val PERMISSION_CODE = 1000
+
+    var image_uri: Uri? = null
 
     private lateinit var viewModel: HomePageViewModel
 
@@ -57,9 +73,60 @@ class HomePageFragment : Fragment() {
         val id = item.getItemId()
 
         if (id == R.id.action_add) {
-            viewModel.newPost()
+            checkPermissions()
         }
 
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun isPermissionsGranted() =
+        checkSelfPermission(requireContext(), Manifest.permission.CAMERA)== PackageManager.PERMISSION_DENIED
+                || checkSelfPermission(requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED
+
+    private fun checkPermissions() {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if(isPermissionsGranted()) {
+                val permission = arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                requestPermissions(permission, PERMISSION_CODE)
+            } else {
+                //Permission already granted
+                openCamera()
+            }
+
+        } else {
+            //System is less than marshmallow
+            openCamera()
+        }
+    }
+
+    private fun openCamera() {
+        val values = ContentValues()
+        values.put(MediaStore.Images.Media.TITLE, "New Picture")
+        values.put(MediaStore.Images.Media.DESCRIPTION, "From the Camera")
+        image_uri = requireContext().contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+
+        //Camera Intent
+        var cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, image_uri)
+        startActivityForResult(cameraIntent, IMAGE_CAPTURE_CODE)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        when(requestCode) {
+            PERMISSION_CODE -> {
+                if(grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    openCamera()
+                } else {
+                    //Permission Denied
+                }
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if(resultCode == Activity.RESULT_OK) {
+            Log.d("HomePageFragment", image_uri.toString())
+            viewModel.newPost(image_uri)
+        }
     }
 }
