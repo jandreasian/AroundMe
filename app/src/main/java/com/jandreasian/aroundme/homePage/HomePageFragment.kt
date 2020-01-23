@@ -75,6 +75,9 @@ class HomePageFragment : Fragment() {
         if (id == R.id.action_add) {
             checkPermissions()
         }
+        if (id == R.id.action_refresh) {
+            viewModel.getAllPosts()
+        }
 
         return super.onOptionsItemSelected(item)
     }
