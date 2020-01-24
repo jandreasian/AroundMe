@@ -9,5 +9,17 @@
         android:id="@+id/homePageFragment"
         android:name="com.jandreasian.aroundme.homePage.HomePageFragment"
         android:label="HomePageFragment"
-        tools:layout="@layout/home_page_fragment"/>
+        tools:layout="@layout/home_page_fragment">
+        <action
+            android:id="@+id/action_homePageFragment_to_newPostFragment"
+            app:destination="@id/newPostFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/newPostFragment"
+        android:name="com.jandreasian.aroundme.newPost.NewPostFragment"
+        android:label="new_post_fragment"
+        tools:layout="@layout/new_post_fragment" >
+        <argument android:name="imageURI"
+            app:argType="android.net.Uri" />
+    </fragment>
 </navigation>

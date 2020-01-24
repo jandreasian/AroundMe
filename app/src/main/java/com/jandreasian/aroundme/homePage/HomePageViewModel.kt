@@ -27,6 +27,12 @@ class HomePageViewModel : ViewModel() {
         get() = _imageUrl
     var posts : MutableLiveData<List<Posts>> = MutableLiveData()
 
+    // Internally, we use a MutableLiveData to handle navigation to the new post
+    //private val _navigateToNewPost = MutableLiveData<Posts>()
+
+    // The external immutable LiveData for the navigation property
+    //val navigateToNewPost: LiveData<Posts>
+    //    get() = _navigateToNewPost
     //This will grab all of the posts that are contained in the Posts collection
     fun getAllPosts(): LiveData<List<Posts>> {
         var postList : MutableList<Posts> = mutableListOf()
@@ -37,6 +43,8 @@ class HomePageViewModel : ViewModel() {
                     postList.add(Posts(document.get("caption").toString(),document.get("imgSrcUrl").toString()))
                     //_caption.value = document.get("Caption").toString()
                     //_imageUrl.value = document.get("ImageURL").toString()
+                    Log.d("HomePageViewModel", document.id)
+
                 }
                 posts.value = postList
             }
@@ -60,5 +68,14 @@ class HomePageViewModel : ViewModel() {
         val post = Posts("This is a test", "gs://aroundme-7b5fa.appspot.com/images/$fileName")
         db.collection("posts").document(uuid).set(post)
     }
+
+    /*fun createNewPost(image_uri: Uri?) {
+        val post = Posts("", image_uri.toString())
+        _navigateToNewPost.value = post
+    }*/
+
+    /*fun createNewPostComplete() {
+        _navigateToNewPost.value = null
+    }*/
 
 }

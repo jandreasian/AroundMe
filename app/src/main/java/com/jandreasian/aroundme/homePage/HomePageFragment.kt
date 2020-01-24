@@ -3,7 +3,6 @@ package com.jandreasian.aroundme.homePage
 import android.Manifest
 import android.app.Activity
 import android.content.ContentValues
-import android.content.ContentValues.TAG
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -17,6 +16,8 @@ import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.fragment.app.Fragment
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
+import androidx.navigation.Navigation
+import androidx.navigation.fragment.findNavController
 
 import com.jandreasian.aroundme.R
 import com.jandreasian.aroundme.databinding.HomePageFragmentBinding
@@ -27,7 +28,7 @@ class HomePageFragment : Fragment() {
 
     private val PERMISSION_CODE = 1000
 
-    var image_uri: Uri? = null
+    lateinit var image_uri: Uri
 
     private lateinit var viewModel: HomePageViewModel
 
@@ -59,6 +60,15 @@ class HomePageFragment : Fragment() {
                 adapter.data = it
             }
         })
+
+        /*viewModel.navigateToNewPost.observe(this, Observer {
+            if ( null != it ) {
+                // Must find the NavController from the Fragment
+                this.findNavController().navigate(R.id.action_homePageFragment_to_newPostFragment)
+                // Tell the ViewModel we've made the navigate call to prevent multiple navigation
+                viewModel.createNewPostComplete()
+            }
+        })*/
 
         setHasOptionsMenu(true)
         return binding.root
@@ -106,7 +116,7 @@ class HomePageFragment : Fragment() {
         val values = ContentValues()
         values.put(MediaStore.Images.Media.TITLE, "New Picture")
         values.put(MediaStore.Images.Media.DESCRIPTION, "From the Camera")
-        image_uri = requireContext().contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+        image_uri = requireContext().contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)!!
 
         //Camera Intent
         var cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
@@ -128,8 +138,11 @@ class HomePageFragment : Fragment() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if(resultCode == Activity.RESULT_OK) {
-            Log.d("HomePageFragment", image_uri.toString())
-            viewModel.newPost(image_uri)
+            Log.d("HomePageFragment", "Image URI: " + image_uri.toString())
+            //viewModel.newPost(image_uri)
+            //viewModel.createNewPost(image_uri)
+            findNavController().navigate(HomePageFragmentDirections.actionHomePageFragmentToNewPostFragment(image_uri))
+
         }
     }
 }
