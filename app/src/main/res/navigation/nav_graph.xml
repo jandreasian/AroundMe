@@ -19,6 +19,9 @@
         android:name="com.jandreasian.aroundme.newPost.NewPostFragment"
         android:label="new_post_fragment"
         tools:layout="@layout/new_post_fragment" >
+        <action
+            android:id="@+id/action_newPostFragment_to_homePageFragment"
+            app:destination="@id/homePageFragment" />
         <argument android:name="imageURI"
             app:argType="android.net.Uri" />
     </fragment>

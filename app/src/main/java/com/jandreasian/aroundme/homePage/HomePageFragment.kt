@@ -16,7 +16,6 @@ import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.fragment.app.Fragment
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
-import androidx.navigation.Navigation
 import androidx.navigation.fragment.findNavController
 
 import com.jandreasian.aroundme.R
@@ -60,15 +59,6 @@ class HomePageFragment : Fragment() {
                 adapter.data = it
             }
         })
-
-        /*viewModel.navigateToNewPost.observe(this, Observer {
-            if ( null != it ) {
-                // Must find the NavController from the Fragment
-                this.findNavController().navigate(R.id.action_homePageFragment_to_newPostFragment)
-                // Tell the ViewModel we've made the navigate call to prevent multiple navigation
-                viewModel.createNewPostComplete()
-            }
-        })*/
 
         setHasOptionsMenu(true)
         return binding.root
