@@ -36,7 +36,7 @@ class NewPostFragment : Fragment() {
         )
 
         // Allows Data Binding to Observe LiveData with the lifecycle of this Fragment
-        //binding.setLifecycleOwner(this)
+        binding.setLifecycleOwner(this)
 
         val args = NewPostFragmentArgs.fromBundle(arguments!!).imageURI
         Log.d("NewPostFragment", args.toString())
@@ -45,14 +45,8 @@ class NewPostFragment : Fragment() {
         viewModel = ViewModelProviders.of(
            this, viewModelFactory).get(NewPostViewModel::class.java)
 
-        // Add observer for score
-        viewModel.selectedImage.observe(this, Observer { imageSrcUri ->
-            Glide
-                .with(requireContext())
-                .load(imageSrcUri)
-                .apply(RequestOptions().override(600, 200))
-                .into(binding.imageView)
-        })
+        binding.viewModel = viewModel
+        
 
         binding.button.setOnClickListener{
             viewModel.newPost(args, Posts(binding.plainTextInput.text.toString(), ""))
