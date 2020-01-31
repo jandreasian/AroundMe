@@ -15,11 +15,11 @@ import android.view.*
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.fragment.app.Fragment
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 
 import com.jandreasian.aroundme.R
 import com.jandreasian.aroundme.databinding.HomePageFragmentBinding
+import com.jandreasian.aroundme.network.Posts
 
 class HomePageFragment : Fragment() {
 
@@ -27,7 +27,7 @@ class HomePageFragment : Fragment() {
 
     private val PERMISSION_CODE = 1000
 
-    lateinit var image_uri: Uri
+    private lateinit var image_uri: Uri
 
     private lateinit var viewModel: HomePageViewModel
 
@@ -51,14 +51,7 @@ class HomePageFragment : Fragment() {
         // Giving the binding access to the ViewModel
         binding.viewModel = viewModel
 
-        val adapter = PostsAdapter()
-        binding.photosGrid.adapter = adapter
-
-        viewModel.getAllPosts().observe(viewLifecycleOwner, Observer {
-            it?.let {
-                adapter.data = it
-            }
-        })
+        binding.photosGrid.adapter = PostsAdapter()
 
         setHasOptionsMenu(true)
         return binding.root
@@ -129,9 +122,9 @@ class HomePageFragment : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if(resultCode == Activity.RESULT_OK) {
             Log.d("HomePageFragment", "Image URI: " + image_uri.toString())
-            //viewModel.newPost(image_uri)
-            //viewModel.createNewPost(image_uri)
-            findNavController().navigate(HomePageFragmentDirections.actionHomePageFragmentToNewPostFragment(image_uri))
+            val post = Posts("test","test",image_uri.toString())
+            Log.d("HomePageFragment", "Image URI: " + post.imgSrcUrl)
+            findNavController().navigate(HomePageFragmentDirections.actionHomePageFragmentToNewPostFragment(post))
 
         }
     }

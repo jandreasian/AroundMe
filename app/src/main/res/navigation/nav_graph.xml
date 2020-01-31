@@ -22,7 +22,7 @@
         <action
             android:id="@+id/action_newPostFragment_to_homePageFragment"
             app:destination="@id/homePageFragment" />
-        <argument android:name="imageURI"
-            app:argType="android.net.Uri" />
+        <argument android:name="posts"
+            app:argType="com.jandreasian.aroundme.network.Posts" />
     </fragment>
 </navigation>

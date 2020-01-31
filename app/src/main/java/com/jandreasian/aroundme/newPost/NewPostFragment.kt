@@ -1,5 +1,6 @@
 package com.jandreasian.aroundme.newPost
 
+import android.net.Uri
 import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.util.Log
@@ -13,8 +14,6 @@ import androidx.navigation.fragment.findNavController
 
 import com.jandreasian.aroundme.R
 import com.jandreasian.aroundme.databinding.NewPostFragmentBinding
-import com.bumptech.glide.request.RequestOptions
-import com.bumptech.glide.Glide
 import com.jandreasian.aroundme.network.Posts
 
 class NewPostFragment : Fragment() {
@@ -38,20 +37,21 @@ class NewPostFragment : Fragment() {
         // Allows Data Binding to Observe LiveData with the lifecycle of this Fragment
         binding.setLifecycleOwner(this)
 
-        val args = NewPostFragmentArgs.fromBundle(arguments!!).imageURI
-        Log.d("NewPostFragment", args.toString())
+        val args = NewPostFragmentArgs.fromBundle(arguments!!).posts
+        Log.d("NewPostFragment", args.imgSrcUrl)
         viewModelFactory = NewPostViewModelFactory(args, application)
 
         viewModel = ViewModelProviders.of(
            this, viewModelFactory).get(NewPostViewModel::class.java)
 
         binding.viewModel = viewModel
-        
+
 
         binding.button.setOnClickListener{
-            viewModel.newPost(args, Posts(binding.plainTextInput.text.toString(), ""))
+            viewModel.newPost(Uri.parse(args.toString()), Posts("", binding.plainTextInput.text.toString(), ""))
         }
 
+        //Observes when the post had been uploaded.
         viewModel.eventNewPostUploaded.observe(this, Observer { newPost ->
             if(newPost) {
                 findNavController().navigate(NewPostFragmentDirections.actionNewPostFragmentToHomePageFragment())
