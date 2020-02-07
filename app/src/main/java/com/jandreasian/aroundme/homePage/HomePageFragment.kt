@@ -10,7 +10,6 @@ import android.os.Build
 import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.view.*
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.fragment.app.Fragment
@@ -33,6 +32,8 @@ class HomePageFragment : Fragment() {
 
     private lateinit var binding: HomePageFragmentBinding
 
+    private val adapter = PostsAdapter()
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
         binding = DataBindingUtil.inflate(
@@ -51,7 +52,7 @@ class HomePageFragment : Fragment() {
         // Giving the binding access to the ViewModel
         binding.viewModel = viewModel
 
-        binding.photosGrid.adapter = PostsAdapter()
+        binding.photosGrid.adapter = adapter
 
         setHasOptionsMenu(true)
         return binding.root
@@ -69,7 +70,7 @@ class HomePageFragment : Fragment() {
             checkPermissions()
         }
         if (id == R.id.action_refresh) {
-            viewModel.getAllPosts()
+            adapter.notifyDataSetChanged()
         }
 
         return super.onOptionsItemSelected(item)
@@ -121,11 +122,8 @@ class HomePageFragment : Fragment() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if(resultCode == Activity.RESULT_OK) {
-            Log.d("HomePageFragment", "Image URI: " + image_uri.toString())
             val post = Posts("test","test",image_uri.toString())
-            Log.d("HomePageFragment", "Image URI: " + post.imgSrcUrl)
             findNavController().navigate(HomePageFragmentDirections.actionHomePageFragmentToNewPostFragment(post))
-
         }
     }
 }

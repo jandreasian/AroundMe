@@ -6,5 +6,5 @@ import kotlinx.android.parcel.Parcelize
 @Parcelize
 data class Posts(
     val id: String,
-    val caption: String,
+    var caption: String,
     val imgSrcUrl: String): Parcelable

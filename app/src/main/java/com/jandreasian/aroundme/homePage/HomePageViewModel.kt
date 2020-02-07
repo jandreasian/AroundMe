@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.MetadataChanges
 import com.jandreasian.aroundme.network.Posts
 
 class HomePageViewModel : ViewModel() {
@@ -15,7 +16,7 @@ class HomePageViewModel : ViewModel() {
         get() = _posts
 
     init {
-        getAllPosts()
+        setUpListener()
     }
 
     fun getAllPosts() {
@@ -31,5 +32,40 @@ class HomePageViewModel : ViewModel() {
             .addOnFailureListener { exception ->
                 Log.w("HomePageViewModel", "Error getting documents.", exception)
             }
+    }
+
+    /**
+     * This will setup the snapshot listener to add/update any elements in the RecyclerView.
+     */
+    fun setUpListener() {
+        var postList : MutableList<Posts> = mutableListOf()
+        val docRef = db.collection("posts")
+        docRef.addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, e ->
+            if (e != null) {
+                Log.w("HomePageViewModel", "Listen failed.", e)
+                return@addSnapshotListener
+            }
+
+            if (snapshot?.getDocumentChanges() != null) {
+                for (doc in snapshot!!.documentChanges) {
+                    var post = Posts(doc.document.id, doc.document.get("caption").toString(), doc.document.get("imgSrcUrl").toString())
+
+                    val a = postList.find { it.id == doc.document.id }
+                    if(a === null) {
+                        //Add new element in RecyclerView
+                        postList.add(post)
+
+                    } else {
+                        //Update existing element in RecyclerView
+                        postList?.find { it.id == doc.document.id }?.caption = doc.document.get("caption").toString()
+                    }
+                }
+
+                _posts.value = postList
+            } else {
+                Log.d("HomePageViewModel", "Current data: null")
+            }
+        }
+
     }
 }
