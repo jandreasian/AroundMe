@@ -9,7 +9,6 @@ import androidx.lifecycle.MutableLiveData
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.jandreasian.aroundme.network.Posts
-import java.util.*
 
 class NewPostViewModel(post: Posts, app: Application) : AndroidViewModel(app) {
 
@@ -29,17 +28,23 @@ class NewPostViewModel(post: Posts, app: Application) : AndroidViewModel(app) {
         _post.value = post
     }
 
-    fun newPost(image_uri: Uri?, post: Posts) {
-        if(image_uri == null) return
-        val uuid: String = UUID.randomUUID().toString()
-        val fileName = UUID.randomUUID().toString()
-        val storageRef = FirebaseStorage.getInstance().getReference("/images/$fileName")
-        storageRef.putFile(image_uri)
-            .addOnSuccessListener {
-                Log.d("HomePageFragment", "ImageUploaded: ${it.metadata?.path}")
-            }
-        val post = Posts("", post.caption, "gs://aroundme-7b5fa.appspot.com/images/$fileName")
-        db.collection("posts").document(uuid).set(post)
+    fun newPost(post: Posts) {
+        if(post.imgSrcUrl == null) return
+        val imageUri = Uri.parse(post.imgSrcUrl)
+        val storageRef = FirebaseStorage.getInstance().getReference("/images/${post.id}")
+
+        val uploadTask = storageRef.putFile(imageUri)
+        // Register observers to listen for when the download is done or if it fails
+        uploadTask.addOnFailureListener {
+            Log.d("NewPage", "ImageUpload Failed: ${it}")
+
+        }.addOnSuccessListener {
+            Log.d("NewPage", "ImageUploaded: ${it.metadata?.path}")
+        }
+
+        val post = Posts(post.id, post.caption, storageRef.toString())
+
+        db.collection("posts").document(post.id).set(post)
         onHomePage()
     }
 

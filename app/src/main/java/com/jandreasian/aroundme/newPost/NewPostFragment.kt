@@ -15,6 +15,7 @@ import androidx.navigation.fragment.findNavController
 import com.jandreasian.aroundme.R
 import com.jandreasian.aroundme.databinding.NewPostFragmentBinding
 import com.jandreasian.aroundme.network.Posts
+import java.util.*
 
 class NewPostFragment : Fragment() {
 
@@ -38,7 +39,7 @@ class NewPostFragment : Fragment() {
         binding.setLifecycleOwner(this)
 
         val args = NewPostFragmentArgs.fromBundle(arguments!!).posts
-        Log.d("NewPostFragment", args.imgSrcUrl)
+
         viewModelFactory = NewPostViewModelFactory(args, application)
 
         viewModel = ViewModelProviders.of(
@@ -48,7 +49,7 @@ class NewPostFragment : Fragment() {
 
 
         binding.button.setOnClickListener{
-            viewModel.newPost(Uri.parse(args.toString()), Posts("", binding.plainTextInput.text.toString(), ""))
+            viewModel.newPost(Posts(UUID.randomUUID().toString(), binding.plainTextInput.text.toString(), args.imgSrcUrl))
         }
 
         //Observes when the post had been uploaded.
