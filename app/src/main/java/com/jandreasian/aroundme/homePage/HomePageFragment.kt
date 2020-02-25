@@ -1,6 +1,7 @@
 package com.jandreasian.aroundme.homePage
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Intent
@@ -10,15 +11,20 @@ import android.os.Build
 import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.view.*
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.fragment.app.Fragment
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 
 import com.jandreasian.aroundme.R
 import com.jandreasian.aroundme.databinding.HomePageFragmentBinding
 import com.jandreasian.aroundme.network.Posts
+
+const val LOCATION_REQUEST = 100
 
 class HomePageFragment : Fragment() {
 
@@ -55,6 +61,9 @@ class HomePageFragment : Fragment() {
         binding.photosGrid.adapter = adapter
 
         setHasOptionsMenu(true)
+
+        invokeLocationAction()
+
         return binding.root
     }
 
@@ -78,12 +87,16 @@ class HomePageFragment : Fragment() {
 
     private fun isPermissionsGranted() =
         checkSelfPermission(requireContext(), Manifest.permission.CAMERA)== PackageManager.PERMISSION_DENIED
-                || checkSelfPermission(requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED
+                && checkSelfPermission(requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED
+
+    private fun isLocationPermissionGranted() =
+        checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                && checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
     private fun checkPermissions() {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if(isPermissionsGranted()) {
-                val permission = arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                val permission = arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
                 requestPermissions(permission, PERMISSION_CODE)
             } else {
                 //Permission already granted
@@ -108,6 +121,7 @@ class HomePageFragment : Fragment() {
         startActivityForResult(cameraIntent, IMAGE_CAPTURE_CODE)
     }
 
+    @SuppressLint("MissingPermission")
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         when(requestCode) {
             PERMISSION_CODE -> {
@@ -117,6 +131,9 @@ class HomePageFragment : Fragment() {
                     //Permission Denied
                 }
             }
+            LOCATION_REQUEST -> {
+                invokeLocationAction()
+            }
         }
     }
 
@@ -125,5 +142,23 @@ class HomePageFragment : Fragment() {
             val post = Posts("test","test",image_uri.toString())
             findNavController().navigate(HomePageFragmentDirections.actionHomePageFragmentToNewPostFragment(post))
         }
+    }
+
+    private fun invokeLocationAction() {
+        when {
+            isLocationPermissionGranted() -> startLocationUpdate()
+
+            else -> ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION),
+                LOCATION_REQUEST
+            )
+        }
+    }
+
+    private fun startLocationUpdate() {
+        viewModel.getLocationData().observe(this, Observer {
+            Log.d("HomePageFragment", getString(R.string.latLong, it.longitude, it.latitude))
+        })
     }
 }

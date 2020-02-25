@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">AroundMe</string>
+    <string name="latLong">%.3f, %.3f</string>
 </resources>
