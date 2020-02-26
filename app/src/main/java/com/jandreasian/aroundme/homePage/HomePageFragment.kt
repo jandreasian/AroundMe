@@ -22,15 +22,19 @@ import androidx.navigation.fragment.findNavController
 
 import com.jandreasian.aroundme.R
 import com.jandreasian.aroundme.databinding.HomePageFragmentBinding
+import com.jandreasian.aroundme.network.GpsUtils
 import com.jandreasian.aroundme.network.Posts
 
 const val LOCATION_REQUEST = 100
+const val GPS_REQUEST = 101
 
 class HomePageFragment : Fragment() {
 
     private val IMAGE_CAPTURE_CODE = 1001
 
     private val PERMISSION_CODE = 1000
+
+    private var isGPSEnabled = false
 
     private lateinit var image_uri: Uri
 
@@ -41,6 +45,13 @@ class HomePageFragment : Fragment() {
     private val adapter = PostsAdapter()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+
+        GpsUtils(requireContext()).turnGPSOn(object : GpsUtils.OnGpsListener {
+
+            override fun gpsStatus(isGPSEnable: Boolean) {
+                this@HomePageFragment.isGPSEnabled = isGPSEnable
+            }
+        })
 
         binding = DataBindingUtil.inflate(
             inflater,
