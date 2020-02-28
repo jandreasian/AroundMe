@@ -42,7 +42,6 @@ class HomePageViewModel(application: Application) : AndroidViewModel(application
             .addOnSuccessListener { location ->
                 //This will create a GeoQuery based on the current location with a radius of 0.1 kilometers.
                 val geoQuery = geoFirestore.queryAtLocation(GeoPoint(location.latitude, location.longitude), 0.1)
-
                 geoQuery.addGeoQueryEventListener(object : GeoQueryEventListener {
                     override fun onGeoQueryError(exception: Exception) {
                         Log.i("HomePageViewModel", "onGeoQueryError")
@@ -68,8 +67,11 @@ class HomePageViewModel(application: Application) : AndroidViewModel(application
                         Log.i("HomePageViewModel", "onKeyMoved")
                     }
 
+                    //Remove the post if it is not within the range
                     override fun onKeyExited(key: String) {
                         Log.i("HomePageViewModel", String.format("Provider %s is no longer in the search area", key))
+                        var postToBeRemoved = postList.find { it.id == key }
+                        postList.remove(postToBeRemoved)
                     }
 
                     override fun onGeoQueryReady() {
