@@ -6,13 +6,19 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.google.android.gms.location.LocationServices
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.storage.FirebaseStorage
 import com.jandreasian.aroundme.network.Posts
+import org.imperiumlabs.geofirestore.GeoFirestore
+import org.imperiumlabs.geofirestore.extension.setLocation
 
 class NewPostViewModel(post: Posts, app: Application) : AndroidViewModel(app) {
 
-    private val db = FirebaseFirestore.getInstance()
+    private val db = FirebaseFirestore.getInstance().collection("posts")
+    private val geoFirestore = GeoFirestore(db)
+    private var fusedLocationClient = LocationServices.getFusedLocationProviderClient(app)
 
     private val _eventNewPostUploaded = MutableLiveData<Boolean>()
     val eventNewPostUploaded: LiveData<Boolean>
@@ -29,26 +35,42 @@ class NewPostViewModel(post: Posts, app: Application) : AndroidViewModel(app) {
     }
 
     fun newPost(post: Posts) {
+
         if(post.imgSrcUrl == null) return
-        val imageUri = Uri.parse(post.imgSrcUrl)
-        val storageRef = FirebaseStorage.getInstance().getReference("/images/${post.id}")
 
-        val uploadTask = storageRef.putFile(imageUri)
-        // Register observers to listen for when the download is done or if it fails
-        uploadTask.addOnFailureListener {
-            Log.d("NewPage", "ImageUpload Failed: ${it}")
+        //Get Last Location
+        fusedLocationClient!!.lastLocation
+            .addOnSuccessListener { location ->
+                val imageUri = Uri.parse(post.imgSrcUrl)
+                val storageRef = FirebaseStorage.getInstance().getReference("/images/${post.id}")
+                val uploadTask = storageRef.putFile(imageUri)
 
-        }.addOnSuccessListener {
-            Log.d("NewPage", "ImageUploaded: ${it.metadata?.path}")
-        }
+                // Register observers to listen for when the download is done or if it fails
+                uploadTask.addOnFailureListener {
+                    Log.d("NewPage", "ImageUpload Failed: ${it}")
 
-        val post = Posts(post.id, post.caption, storageRef.toString())
+                }.addOnSuccessListener {
+                    Log.d("NewPage", "ImageUploaded: ${it.metadata?.path}")
+                }
 
-        db.collection("posts").document(post.id).set(post)
-        onHomePage()
+                val post = Posts(post.id, post.caption, storageRef.toString())
+                db.document(post.id).set(post)
+
+                //Create a Location Data in Collection for the New Post that is created
+                geoFirestore.setLocation(post.id, GeoPoint(location.latitude, location.longitude)) { e ->
+                    if (e == null) {
+                        Log.d("NewPage", "Location saved on server successfully!")
+                    }
+                    else {
+                        Log.d("NewPage", "An error has occurred: $e")
+                    }
+                }
+
+                onHomePage()
+            }
     }
 
-    fun onHomePage() {
+    private fun onHomePage() {
         _eventNewPostUploaded.value = true
     }
 
