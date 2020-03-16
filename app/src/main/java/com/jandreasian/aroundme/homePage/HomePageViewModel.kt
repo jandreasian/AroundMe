@@ -36,12 +36,34 @@ class HomePageViewModel(application: Application) : AndroidViewModel(application
      * This will setup the snapshot listener to add/update any elements in the RecyclerView.
      */
     private fun setUpListener() {
+        getPostsAroundLocation()
+
+        db.addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, e ->
+            if (e != null) {
+                Log.w("HomePageViewModel", "Listen failed.", e)
+                return@addSnapshotListener
+            }
+
+            //This gets any updates that happen to the posts
+            if (snapshot?.getDocumentChanges() != null) {
+                for (doc in snapshot!!.documentChanges) {
+                    //postList?.find { it.id == doc.document.id }?.caption = doc.document.get("caption").toString()
+                }
+            } else {
+                Log.d("HomePageViewModel", "Current data: null")
+            }
+        }
+    }
+
+    fun getPostsAroundLocation() {
         var postList : MutableList<Posts> = mutableListOf()
 
         fusedLocationClient!!.lastLocation
             .addOnSuccessListener { location ->
                 //This will create a GeoQuery based on the current location with a radius of 0.1 kilometers.
                 val geoQuery = geoFirestore.queryAtLocation(GeoPoint(location.latitude, location.longitude), 0.1)
+                Log.d("HomePageViewModel", location.latitude.toString() + ", " + location.longitude.toString())
+
                 geoQuery.addGeoQueryEventListener(object : GeoQueryEventListener {
                     override fun onGeoQueryError(exception: Exception) {
                         Log.i("HomePageViewModel", "onGeoQueryError")
@@ -80,21 +102,5 @@ class HomePageViewModel(application: Application) : AndroidViewModel(application
                     }
                 })
             }
-
-        db.addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, e ->
-            if (e != null) {
-                Log.w("HomePageViewModel", "Listen failed.", e)
-                return@addSnapshotListener
-            }
-
-            //This gets any updates that happen to the posts
-            if (snapshot?.getDocumentChanges() != null) {
-                for (doc in snapshot!!.documentChanges) {
-                    postList?.find { it.id == doc.document.id }?.caption = doc.document.get("caption").toString()
-                }
-            } else {
-                Log.d("HomePageViewModel", "Current data: null")
-            }
-        }
     }
 }
